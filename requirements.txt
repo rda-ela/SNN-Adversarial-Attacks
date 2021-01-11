@@ -1,6 +1,6 @@
 torch
 torchvision
-foolbox
 norse
+foolbox
 numpy
 statistics
