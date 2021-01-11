@@ -1,0 +1,6 @@
+foolbox==3.2.1
+norse==0.0.5.post1
+numpy==1.19.5
+statistics==1.0.3.5
+torch==1.7.1
+torchvision==0.8.2
