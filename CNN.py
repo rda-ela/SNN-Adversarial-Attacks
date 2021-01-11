@@ -1,21 +1,26 @@
 import torch
-import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import matplotlib.pyplot as plt
+
+import torchvision
 import torchvision.transforms as transforms
+
 import foolbox as fb
-from foolbox import PyTorchModel, accuracy, samples
 import foolbox.attacks as fa
+from foolbox import PyTorchModel, accuracy, samples
+
 import numpy as np
+
 import statistics
+
 
 n_epochs = 1
 batchsize = 64
-
 learning_rate = 0.001
+momentum = 0.9
 log_interval = 100
+
 
 transform = transforms.Compose(
     [transforms.Resize(32),
@@ -31,6 +36,7 @@ testset = torchvision.datasets.MNIST(root='./data', train=False,
                                        download=True, transform=transform)
 test_loader = torch.utils.data.DataLoader(testset, batch_size=batchsize,
                                          shuffle=False)
+
 
 class Net(nn.Module):
     def __init__(self):
@@ -49,6 +55,7 @@ class Net(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
+
 
 network = Net()
 criterion = nn.CrossEntropyLoss()
@@ -91,9 +98,14 @@ def test():
     test_loss, correct, len(test_loader.dataset),
     100. * correct / len(test_loader.dataset)))
 
+print(" ")
 for epoch in range(1, n_epochs + 1):
   train(epoch)
   test()
+
+
+#This function does the same work as foolbox, it allows us to compare the values of foolbox
+#It's only used to check if there is no issues with the model given to foolbox
 
 def benchmark():
     listeimg = []
@@ -133,19 +145,26 @@ def benchmark():
         for e in range(len(results[0])):
             if results[i][e] == "FALSE":
                 v = v+1
+        print("eps: "+ str(epsilons[i]), end=' | ')
         print("pred en %: " + str(float(v/len(results[0]))*100))
-        print("eps: "+ str(epsilons[i]))
+        print("")
+
+
 adv_loader = torch.utils.data.DataLoader(testset, batch_size=batchsize,
                                          shuffle=False)
 
 examples = enumerate(adv_loader)
 batch_idx, (images, labels) = next(examples)
 
+
 model = network
+print(model)
+
 
 fmodel = fb.PyTorchModel(model, bounds=(0, 1))
 
-print("accuracy")
+print(" ")
+print("accuracy", end=' | ')
 print(accuracy(fmodel, images, labels))
 print("")
 
@@ -179,6 +198,7 @@ print("epsilons")
 print(epsilons)
 print("")
 
+
 lbyat = []
 fulatac = []
 for i, attack in enumerate(attacks):
@@ -199,23 +219,3 @@ for i, attack in enumerate(attacks):
             l.append(float(format(np.linalg.norm(perturbation.flatten()))))
         lfull.append(statistics.mean(l))
     lbyat.append(lfull)
-
-print(attacks[0])
-print('batch_size=', len(images))
-print(" ")
-print("e                             accuracy                                      L2")
-listfgsm= [epsilons, fulatac[0], lbyat[0]]
-for v in zip(*listfgsm):
-        print (v[0], "           |         ", format(v[1]*100,"20"),"        |           ", v[2])
-
-print(" ")
-print(attacks[1])
-print('batch_size=', len(images))
-print(" ")
-
-print("e                             accuracy                                      L2")
-listfgsm= [epsilons, fulatac[1], lbyat[1]]
-for v in zip(*listfgsm):
-        print (v[0], "           |         ", format(v[1]*100,"20"),"        |           ", v[2])
-
-print(model)
