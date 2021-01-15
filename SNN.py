@@ -31,7 +31,7 @@ v_thh=[0.25]
 TT = [80]
 
 
-#We recommend using a GPU as the applying the attack to the SNN model takes a lot of time
+#We recommend using a GPU as applying the attack to the SNN model takes a lot of time
 
 device = torch.device("cuda")
 mmodel = "super"
